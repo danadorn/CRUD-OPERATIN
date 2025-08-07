@@ -20,6 +20,10 @@ public class CrudOperation {
         System.out.print("Enter age: ");
         int age = Integer.parseInt(scanner.nextLine());
 
+        if (existById(id)){
+            System.out.println("User not found!");
+        }
+
         User user = new User(id, name, age);
 
         String sql = """
@@ -48,6 +52,10 @@ public class CrudOperation {
         System.out.println("Enter user id: ");
         int id = Integer.parseInt(scanner.nextLine());
 
+        if (existById(id)){
+            System.out.println("User not found!");
+        }
+
         String sql = """
                 SELECT * FROM users WHERE id = ?
                 """;
@@ -62,6 +70,82 @@ public class CrudOperation {
                     rs.getInt("age")
             );
         }
+
+    }
+
+    public static boolean existById(int id) throws SQLException {
+        Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+
+        if (existById(id)){
+            System.out.println("User not found!");
+        }
+
+        String sql = """
+                SELECT 1 FROM users WHERE id = ?
+                """;
+
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ps.setInt(1, id);
+        ResultSet rs = ps.executeQuery();
+        return !rs.next();
+    };
+
+    public void updateUser() throws SQLException {
+        Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+
+        System.out.print("Enter id to update: ");
+        int id = Integer.parseInt(scanner.nextLine());
+
+        if (!existById(id)) {
+            System.out.println("User not found");
+        }
+        System.out.print("Enter new name: ");
+        String newName = scanner.nextLine();
+        System.out.print("Enter new age: ");
+        int newAge = Integer.parseInt(scanner.nextLine());
+
+        String sql = """
+                update users
+                set name = ?, age = ?
+                where id = ?
+                """;
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ps.setString(1, newName);
+        ps.setInt(2, newAge);
+        ps.setInt(3, id);
+
+        int rowsAffected = ps.executeUpdate();
+        if (rowsAffected > 0) {
+            System.out.println("Updated successful");
+        } else {
+            System.out.println("Failed to update");
+        }
+    }
+
+    public void deleteUser() throws SQLException {
+        Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+        System.out.print("Enter user id: ");
+        int id = Integer.parseInt(scanner.nextLine());
+
+        String sql = """
+                DELETE FROM users WHERE id = ?
+                """;
+
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ps.setInt(1, id);
+        int rowAffected = ps.executeUpdate();
+        if (rowAffected > 0) {
+            System.out.println("User not found!");
+        }
+    }
+
+    public void readAllUsers() throws SQLException {
+        Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+
+    }
+
+    public void exit() throws SQLException {
+        Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
 
     }
 
@@ -87,6 +171,10 @@ public class CrudOperation {
                 switch (option) {
                     case 1 -> crudOperation.createUser();
                     case 2 -> crudOperation.readUserById();
+                    case 3 -> crudOperation.updateUser();
+                    case 4 -> crudOperation.deleteUser();
+                    case 5 -> crudOperation.readAllUsers();
+                    case 6 -> crudOperation.exit();
                 }
             }catch (SQLException e) {
                 System.out.println(e.getMessage());
