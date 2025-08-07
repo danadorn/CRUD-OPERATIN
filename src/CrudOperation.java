@@ -1,7 +1,4 @@
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.Scanner;
 
 public class CrudOperation {
@@ -23,14 +20,17 @@ public class CrudOperation {
         System.out.print("Enter age: ");
         int age = Integer.parseInt(scanner.nextLine());
 
+        User user = new User(id, name, age);
+
         String sql = """
-                INSERT INTO users (id, name, age) VALUES (?, ?, ?)
+                INSERT INTO users 
+                VALUES (?, ?, ?)
                 """;
 
         PreparedStatement ps = conn.prepareStatement(sql);
-        ps.setInt(1, id);
-        ps.setString(2, name);
-        ps.setInt(3, age);
+        ps.setInt(1, user.getId());
+        ps.setString(2, user.getName());
+        ps.setInt(3, user.getAge());
 
         int rowAffected = ps.executeUpdate();
 
@@ -39,11 +39,58 @@ public class CrudOperation {
         }else {
             System.out.println("Failed to insert!");
         }
+        conn.close();
+    }
+
+    public void readUserById() throws SQLException {
+        Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+
+        System.out.println("Enter user id: ");
+        int id = Integer.parseInt(scanner.nextLine());
+
+        String sql = """
+                SELECT * FROM users WHERE id = ?
+                """;
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ps.setInt(1, id);
+
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            User user = new User(
+                    rs.getInt("id"),
+                    rs.getString("name"),
+                    rs.getInt("age")
+            );
+        }
 
     }
 
     public static void main(String[] args) throws SQLException {
         CrudOperation crudOperation = new CrudOperation();
-        crudOperation.createUser();
+//        crudOperation.readUserById();
+
+        while (true) {
+            System.out.println("""
+                    1. Create a new user
+                    2. Read users by id
+                    3. Update user by id
+                    4. Delete user by id
+                    5. Read all
+                    6. Exit
+                    """);
+            System.out.println("Enter an option: ");
+            int option = Integer.parseInt(scanner.nextLine());
+
+            if (option == 6) break;
+
+            try {
+                switch (option) {
+                    case 1 -> crudOperation.createUser();
+                    case 2 -> crudOperation.readUserById();
+                }
+            }catch (SQLException e) {
+                System.out.println(e.getMessage());
+            }
+        }
     }
 }
