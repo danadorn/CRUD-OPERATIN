@@ -142,11 +142,37 @@ public class CrudOperation {
     public void readAllUsers() throws SQLException {
         Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
 
+        String sql = """
+                SELECT * FROM users ORDER BY id
+                """;
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ResultSet rs = ps.executeQuery();
+
+        System.out.println("=".repeat(30));
+        System.out.println("All users found!");
+        System.out.println("=".repeat(30));
+
+        boolean hasUsers = false;
+        while (rs.next()) {
+            hasUsers = true;
+            User user = new User(
+                    rs.getInt("id"),
+                    rs.getString("name"),
+                    rs.getInt("age")
+            );
+            System.out.println("ID: " + user.getId() + ", Name: " + user.getName() + ", Age: " + user.getAge());
+        }
+
+        if (hasUsers) {
+            System.out.println("No users found in the database!");
+        }
+        conn.close();
     }
 
     public void exit() throws SQLException {
-        Connection conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
-
+        System.out.println("Thank you for using CRUD Application!");
+        scanner.close();
+        System.exit(0);
     }
 
     public static void main(String[] args) throws SQLException {
